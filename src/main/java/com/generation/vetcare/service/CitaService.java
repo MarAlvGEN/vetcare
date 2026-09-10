@@ -25,7 +25,8 @@ public class CitaService {
     private final MascotaRepository mascotaRepository;
     private final VeterinarioRepository veterinarioRepository;
 
-    public CitaService(CitaRepository citaRepository, MascotaRepository mascotaRepository, VeterinarioRepository veterinarioRepository) {
+    public CitaService(CitaRepository citaRepository, MascotaRepository mascotaRepository,
+            VeterinarioRepository veterinarioRepository) {
         this.citaRepository = citaRepository;
         this.mascotaRepository = mascotaRepository;
         this.veterinarioRepository = veterinarioRepository;
@@ -66,6 +67,16 @@ public class CitaService {
         return Optional.of(mapearACitaResponseDTO(creada));
     }
 
+    @Transactional
+    public CitaResponseDTO marcarComoAtendida(Long id) {
+        Cita cita = citaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No existe una cita con id " + id));
+
+        cita.setEstado(EstadoCita.ATENDIDA);
+        Cita actualizada = citaRepository.save(cita);
+        return mapearACitaResponseDTO(actualizada);
+    }
+
     public void eliminarCita(Long id) {
         if (!citaRepository.existsById(id)) {
             throw new ResourceNotFoundException("No existe una cita con id " + id);
@@ -77,12 +88,10 @@ public class CitaService {
         MascotaResumenDTO mascotaResumen = new MascotaResumenDTO(
                 cita.getMascota().getId(),
                 cita.getMascota().getNombre(),
-                cita.getMascota().getEspecie()
-        );
+                cita.getMascota().getEspecie());
         VeterinarioResumenDTO veterinarioResumen = new VeterinarioResumenDTO(
                 cita.getVeterinario().getId(),
-                cita.getVeterinario().getNombre()
-        );
+                cita.getVeterinario().getNombre());
 
         return new CitaResponseDTO(
                 cita.getId(),
@@ -90,7 +99,6 @@ public class CitaService {
                 cita.getMotivo(),
                 cita.getEstado(),
                 mascotaResumen,
-                veterinarioResumen
-        );
+                veterinarioResumen);
     }
 }
